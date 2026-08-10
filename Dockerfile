@@ -1,40 +1,34 @@
-FROM python:3.10-alpine
+# Use Python 3.9 slim image
+FROM python:3.9-slim
 
-
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy all files from the current directory to the container's /app directory
-COPY . .
-
-# Install necessary dependencies
-RUN apk add --no-cache \
-    gcc \
-    libffi-dev \
-    musl-dev \
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
     ffmpeg \
-    aria2 \
-    make \
-    g++ \
-    cmake
+    wget \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
+# Install yt-dlp
+RUN pip install --no-cache-dir yt-dlp
 
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-
-
-RUN wget -q https://github.com/axiomatic-systems/Bento4/archive/v1.6.0-639.zip && \
-    unzip v1.6.0-639.zip && \
-    cd Bento4-1.6.0-639 && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make -j$(nproc) && \
-    cp mp4decrypt /usr/local/bin/ &&\
-    cd ../.. && \
-    rm -rf Bento4-1.6.0-639 v1.6.0-639.zip
-
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy application files
+COPY . .
 
-CMD ["sh", "-c", "python3 main.py"]
+# Create downloads directory
+RUN mkdir -p downloads
 
+# Expose port for Render
+EXPOSE $PORT
+
+# Start both Flask app and Telegram bot
+CMD gunicorn --bind 0.0.0.0:$PORT app:app & python3 main.py
