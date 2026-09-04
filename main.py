@@ -85,7 +85,7 @@ async def restart_handler(_, m):
 
 
 
-@bot.on_message(filters.command(["VK"]))
+@bot.on_message(filters.command(["Vishal"]))
 async def account_login(bot: Client, m: Message):
     editable = await m.reply_text(
                         "📂✨ **Please Send Your TXT File for Download** ✨📂\n"
