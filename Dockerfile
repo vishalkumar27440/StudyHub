@@ -27,8 +27,9 @@ COPY . .
 # Create downloads directory
 RUN mkdir -p downloads
 
-# Expose port for Render
-EXPOSE $PORT
+# Render provides PORT at runtime; define a default and expose a concrete port.
+ENV PORT=10000
+EXPOSE 10000
 
 # Start both Flask app and Telegram bot
-CMD gunicorn --bind 0.0.0.0:$PORT app:app & python3 main.py
+CMD gunicorn --bind 0.0.0.0:${PORT:-10000} app:app & python3 main.py
